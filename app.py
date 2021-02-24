@@ -1,39 +1,45 @@
-from flask import Flask, render_template
-
-import plotly
-import plotly.graph_objs as go
-
-import pandas as pd
-import numpy as np
+from flask import Flask, render_template, request
 import json
+from datetime import datetime
 
 app = Flask(__name__)
+data_store = []
 
-def create_plot():
-    N = 40
-    x = np.linspace(0, 1, N)
-    y = np.random.randn(N)
-    df = pd.DataFrame({'x': x, 'y': y}) 
+def get_av(x):
+    return x['analogValue']
 
-    data = [
-        go.Bar(
-            x=df['x'],
-            y=df['y']
-        )
-    ]
+def get_po(x):
+    return x['pumpOn'] * 1000
 
-    graphJSON = json.dumps(data, cls=plotly.utils.PlotlyJSONEncoder)
-
-    return graphJSON
+def get_ts(x):
+    return str(x['timestamp'])
 
 @app.route('/')
 def index():
-    bar = create_plot()
+    av = list(map(get_av, data_store))
+    po = list(map(get_po, data_store))
+    ts = list(map(get_ts, data_store))
     chart_data = json.dumps(
-        [{'y': [2, 2, 3, 5],
-         'x': [1, 2, 3, 4],
-         'type': 'scatter'}])
-    return render_template('index.html', data=chart_data)
+        [
+            {
+                'y': av,
+                'x': ts,
+                'type': 'scatter'
+            },
+            {
+                 'y': po,
+                'x': ts,
+                'type': 'scatter'
+            }
+         ])
+    return render_template('index.html', chart_data=chart_data, db_data=data_store)
+
+@app.route('/record', methods=['POST'])
+def record():
+    record = request.json
+    record['timestamp'] = datetime.now()
+    data_store.append(record)
+    return record
 
 if __name__ == '__main__':
     app.run()

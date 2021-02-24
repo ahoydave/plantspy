@@ -12,15 +12,15 @@
         <div class="col-md-6">
             <div class="chart" id="plot">
                 <script>
-                    var graph_data = {{data | safe}};
-                    Plotly.newPlot('plot', graph_data);
+                    var chart_data = {{chart_data | safe}};
+                    Plotly.newPlot('plot', chart_data);
                 </script>
             </div>
         </div>
     </div>
     <div class="row">
         <div class="col-md-12">
-            <pre>{{data}}</pre>
+            <pre>{{db_data}}</pre>
         </div>
     </div>
 </div>
